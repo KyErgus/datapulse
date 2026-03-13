@@ -1,39 +1,25 @@
-from fastapi import FastAPI, File, HTTPException, UploadFile
-from pydantic import BaseModel
+from fastapi import FastAPI, UploadFile, File, Depends
+from sqlalchemy.orm import Session
 
-from .storage import list_datasets, save_dataset
+from .database import SessionLocal
+from . import storage
 
-app = FastAPI(title="DataPulse API", version="0.1.0")
-
-
-class Dataset(BaseModel):
-    id: str
-    original_filename: str
-    stored_filename: str
-    size_bytes: int
-    uploaded_at: str
+app = FastAPI()
 
 
-class DatasetListResponse(BaseModel):
-    datasets: list[Dataset]
-    count: int
-
-
-@app.get("/health")
-def health_check() -> dict[str, str]:
-    return {"status": "ok"}
-
-
-@app.post("/datasets/upload", response_model=Dataset)
-def upload_dataset(file: UploadFile = File(...)) -> Dataset:
+def get_db():
+    db = SessionLocal()
     try:
-        saved = save_dataset(file)
-    except ValueError as error:
-        raise HTTPException(status_code=400, detail=str(error)) from error
-    return Dataset.model_validate(saved)
+        yield db
+    finally:
+        db.close()
 
 
-@app.get("/datasets", response_model=DatasetListResponse)
-def get_datasets() -> DatasetListResponse:
-    datasets = list_datasets()
-    return DatasetListResponse(datasets=[Dataset.model_validate(item) for item in datasets], count=len(datasets))
+@app.post("/datasets/upload")
+def upload_dataset(file: UploadFile = File(...), db: Session = Depends(get_db)):
+    return storage.save_dataset(file, db)
+
+
+@app.get("/datasets")
+def get_datasets(db: Session = Depends(get_db)):
+    return storage.list_datasets(db)

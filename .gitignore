@@ -1,9 +1,10 @@
-.venv/
+venv/
+backend/venv/
+
 __pycache__/
 *.pyc
 
-backend/data/datasets/*
-!backend/data/datasets/.gitkeep
+backend/data/datasets/
+backend/data/metadata/
 
-backend/data/metadata/*.json
-!backend/data/metadata/.gitkeep
+.env
