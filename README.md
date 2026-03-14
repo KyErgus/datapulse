@@ -1,6 +1,6 @@
 # DataPulse Backend
 
-Initial backend scaffold for DataPulse using FastAPI.
+Initial FastAPI backend for DataPulse with dataset upload and dataset listing.
 
 ## Project Structure
 
@@ -10,12 +10,19 @@ Initial backend scaffold for DataPulse using FastAPI.
 │   ├── app
 │   │   ├── __init__.py
 │   │   ├── main.py
-│   │   └── storage.py
-│   └── data
-│       ├── datasets
-│       │   └── .gitkeep
-│       └── metadata
-│           └── .gitkeep
+│   │   ├── routers
+│   │   │   ├── __init__.py
+│   │   │   └── datasets.py
+│   │   ├── schemas.py
+│   │   └── services
+│   │       ├── __init__.py
+│   │       └── dataset_storage.py
+│   ├── data
+│   │   ├── datasets
+│   │   │   └── .gitkeep
+│   │   └── metadata
+│   │       └── .gitkeep
+│   └── requirements.txt
 ├── requirements.txt
 └── README.md
 ```
@@ -38,11 +45,13 @@ API docs: `http://127.0.0.1:8000/docs`
 
 ## Endpoints
 
-- `POST /datasets/upload`: Upload a dataset file.
-- `GET /datasets`: List uploaded datasets.
-- `GET /health`: Simple health check.
+- `GET /health`
+- `POST /datasets/upload`
+- `GET /datasets`
 
-### Upload Example
+## Examples
+
+Upload a dataset:
 
 ```bash
 curl -X POST "http://127.0.0.1:8000/datasets/upload" \
@@ -51,7 +60,7 @@ curl -X POST "http://127.0.0.1:8000/datasets/upload" \
   -F "file=@/path/to/dataset.csv"
 ```
 
-### List Example
+List datasets:
 
 ```bash
 curl "http://127.0.0.1:8000/datasets"

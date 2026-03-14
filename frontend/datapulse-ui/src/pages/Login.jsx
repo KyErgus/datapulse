@@ -1,0 +1,78 @@
+import { useState } from "react"
+import { Link, useLocation, useNavigate } from "react-router-dom"
+
+import { useAuth } from "../context/AuthContext"
+
+export default function Login() {
+  const [username, setUsername] = useState("")
+  const [password, setPassword] = useState("")
+  const [error, setError] = useState("")
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const navigate = useNavigate()
+  const location = useLocation()
+  const { login } = useAuth()
+
+  const redirectTo = location.state?.from?.pathname || "/"
+
+  const handleSubmit = async (event) => {
+    event.preventDefault()
+    setError("")
+    setIsSubmitting(true)
+
+    try {
+      await login({ username, password })
+      navigate(redirectTo, { replace: true })
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "Login failed")
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  return (
+    <div className="mx-auto w-full max-w-lg rounded-2xl border border-white/10 bg-slate-900/60 p-6">
+      <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Authentication</p>
+      <h2 className="font-display text-2xl text-white">Login</h2>
+
+      <form onSubmit={handleSubmit} className="mt-5 space-y-3">
+        <input
+          type="text"
+          placeholder="Username"
+          value={username}
+          onChange={(event) => setUsername(event.target.value)}
+          className="w-full rounded-xl border border-white/15 bg-slate-950/70 px-3 py-2 text-sm text-slate-100"
+          required
+        />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(event) => setPassword(event.target.value)}
+          className="w-full rounded-xl border border-white/15 bg-slate-950/70 px-3 py-2 text-sm text-slate-100"
+          required
+        />
+        <button
+          type="submit"
+          disabled={isSubmitting}
+          className="w-full rounded-xl bg-cyan-300 px-4 py-2 text-sm font-bold text-slate-900 hover:bg-cyan-200 disabled:bg-slate-500"
+        >
+          {isSubmitting ? "Signing in..." : "Sign In"}
+        </button>
+      </form>
+
+      {error && (
+        <p className="mt-3 rounded-xl border border-rose-300/30 bg-rose-500/10 px-3 py-2 text-sm text-rose-200">
+          {error}
+        </p>
+      )}
+
+      <p className="mt-4 text-sm text-slate-300">
+        No account?{" "}
+        <Link to="/register" className="text-cyan-300 hover:text-cyan-200">
+          Register
+        </Link>
+      </p>
+    </div>
+  )
+}

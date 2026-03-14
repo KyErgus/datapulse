@@ -8,3 +8,4 @@ backend/data/datasets/
 backend/data/metadata/
 
 .env
+*.csv
