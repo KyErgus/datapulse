@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>DataPulse Dashboard</title>
+<style>
+body { font-family: Arial; margin: 40px; }
+button { padding: 6px 12px; }
+</style>
+</head>
+
+<body>
+
+<h1>DataPulse Dashboard</h1>
+
+<h2>Upload Dataset</h2>
+
+<input type="file" id="file">
+<br><br>
+
+<input type="text" id="name" placeholder="Dataset name">
+<br><br>
+
+<input type="text" id="tags" placeholder="tags">
+<br><br>
+
+<button onclick="upload()">Upload</button>
+
+<h2>Datasets</h2>
+
+<button onclick="loadDatasets()">Refresh</button>
+
+<ul id="datasets"></ul>
+
+<script>
+
+const API = "http://38.49.213.121:8000"
+const API_KEY = "datapulse-secret-key"
+
+async function upload() {
+
+    const file = document.getElementById("file").files[0]
+
+    const form = new FormData()
+    form.append("file", file)
+
+    const res = await fetch(API + "/datasets/upload", {
+        method: "POST",
+        headers: {
+            "Authorization": "Bearer " + API_KEY
+        },
+        body: form
+    })
+
+    alert("uploaded")
+    loadDatasets()
+}
+
+
+async function loadDatasets(){
+
+    const res = await fetch(API + "/datasets", {
+        headers: {
+            "Authorization": "Bearer " + API_KEY
+        }
+    })
+
+    const data = await res.json()
+
+    const list = document.getElementById("datasets")
+    list.innerHTML = ""
+
+    data.forEach(d => {
+
+        const li = document.createElement("li")
+
+        li.innerHTML =
+        d.filename +
+        " <button onclick='download("+d.id+")'>Download</button>" +
+        " <button onclick='del("+d.id+")'>Delete</button>"
+
+        list.appendChild(li)
+
+    })
+
+}
+
+async function download(id){
+
+    window.open(API + "/datasets/" + id + "/download")
+
+}
+
+async function del(id){
+
+    await fetch(API + "/datasets/" + id, {
+        method:"DELETE",
+        headers:{
+            "Authorization":"Bearer " + API_KEY
+        }
+    })
+
+    loadDatasets()
+
+}
+
+loadDatasets()
+
+</script>
+
+</body>
+</html>
