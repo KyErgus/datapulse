@@ -13,6 +13,11 @@ class LoginRequest(BaseModel):
     password: str
 
 
+class WalletLoginRequest(BaseModel):
+    provider: str
+    address: str
+
+
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"

@@ -2,6 +2,9 @@ import os
 
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import sessionmaker, declarative_base
+from dotenv import load_dotenv
+
+load_dotenv()
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
@@ -50,6 +53,18 @@ def ensure_schema():
             conn.execute(
                 text("UPDATE users SET profile_description = '' WHERE profile_description IS NULL")
             )
+            _ensure_column(conn, inspector, "users", "full_name", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "avatar_url", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "location", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "website", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "x_username", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "x_user_id", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "x_profile_url", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "x_avatar_url", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "x_connected_at", "TIMESTAMP")
+            _ensure_column(conn, inspector, "users", "aptos_wallet_address", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "aptos_wallet_provider", "VARCHAR")
+            _ensure_column(conn, inspector, "users", "aptos_connected_at", "TIMESTAMP")
 
         if "datasets" in tables:
             _ensure_column(conn, inspector, "datasets", "price", "DOUBLE PRECISION DEFAULT 0")

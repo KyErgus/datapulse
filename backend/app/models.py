@@ -25,6 +25,19 @@ class User(Base):
     password_hash = Column(String)
     api_key = Column(String, unique=True, index=True)
     profile_description = Column(Text, default="", nullable=False)
+    full_name = Column(String)
+    avatar_url = Column(String)
+    location = Column(String)
+    website = Column(String)
+
+    x_username = Column(String, index=True)
+    x_user_id = Column(String, index=True)
+    x_profile_url = Column(String)
+    x_avatar_url = Column(String)
+    x_connected_at = Column(DateTime)
+    aptos_wallet_address = Column(String, index=True)
+    aptos_wallet_provider = Column(String)
+    aptos_connected_at = Column(DateTime)
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -80,3 +93,15 @@ class Purchase(Base):
 
     buyer = relationship("User", back_populates="purchases")
     dataset = relationship("Dataset", back_populates="purchases")
+
+
+class OAuthState(Base):
+    __tablename__ = "oauth_states"
+
+    id = Column(Integer, primary_key=True, index=True)
+    provider = Column(String, nullable=False, index=True)
+    state = Column(String, unique=True, index=True, nullable=False)
+    code_verifier = Column(String, nullable=False)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    expires_at = Column(DateTime, nullable=False, index=True)

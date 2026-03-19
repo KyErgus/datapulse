@@ -26,7 +26,14 @@ ReactDOM.createRoot(document.getElementById("root")).render(
             <Route path="explore" element={<Explore />} />
             <Route path="marketplace" element={<Marketplace />} />
             <Route path="public" element={<PublicTools />} />
-            <Route path="dataset/:id" element={<DatasetDetail />} />
+            <Route
+              path="dataset/:id"
+              element={
+                <ProtectedRoute>
+                  <DatasetDetail />
+                </ProtectedRoute>
+              }
+            />
             <Route path="user/:username" element={<UserProfile />} />
             <Route path="login" element={<Login />} />
             <Route path="register" element={<Register />} />

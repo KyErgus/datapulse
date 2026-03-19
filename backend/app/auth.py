@@ -1,18 +1,54 @@
+import base64
 from datetime import datetime, timedelta, timezone
+import hashlib
 import os
+import secrets
+from urllib.parse import urlencode
 
 import bcrypt
 import jwt
 from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
 
 from .database import get_db
 from .models import User
+
+load_dotenv()
 
 
 SECRET_KEY = os.getenv("DATAPULSE_JWT_SECRET", "datapulse-dev-secret-change-me")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "10080"))
+
+X_OAUTH_AUTHORIZE_URL = os.getenv(
+    "X_OAUTH_AUTHORIZE_URL",
+    "https://twitter.com/i/oauth2/authorize",
+)
+X_OAUTH_TOKEN_URL = os.getenv(
+    "X_OAUTH_TOKEN_URL",
+    "https://api.twitter.com/2/oauth2/token",
+)
+X_OAUTH_USERINFO_URL = os.getenv(
+    "X_OAUTH_USERINFO_URL",
+    "https://api.twitter.com/2/users/me",
+)
+X_OAUTH_CLIENT_ID = os.getenv("X_OAUTH_CLIENT_ID", "")
+X_OAUTH_CLIENT_SECRET = os.getenv("X_OAUTH_CLIENT_SECRET", "")
+X_OAUTH_REDIRECT_URI = os.getenv("X_OAUTH_REDIRECT_URI", "")
+X_OAUTH_SCOPE = os.getenv(
+    "X_OAUTH_SCOPE",
+    "tweet.read users.read offline.access",
+)
+X_OAUTH_STATE_TTL_SECONDS = int(os.getenv("X_OAUTH_STATE_TTL_SECONDS", "900"))
+X_OAUTH_SUCCESS_REDIRECT = os.getenv(
+    "X_OAUTH_SUCCESS_REDIRECT",
+    "http://localhost:5173/profile?x=connected",
+)
+X_OAUTH_ERROR_REDIRECT = os.getenv(
+    "X_OAUTH_ERROR_REDIRECT",
+    "http://localhost:5173/profile?x=error",
+)
 
 
 def hash_password(password: str) -> str:
@@ -110,3 +146,35 @@ def authenticate_user(username: str, password: str, db: Session) -> User | None:
         return None
 
     return user
+
+
+def x_oauth_is_configured() -> bool:
+    return bool(X_OAUTH_CLIENT_ID and X_OAUTH_REDIRECT_URI)
+
+
+def create_pkce_code_verifier() -> str:
+    return secrets.token_urlsafe(64)
+
+
+def create_pkce_code_challenge(code_verifier: str) -> str:
+    digest = hashlib.sha256(code_verifier.encode("utf-8")).digest()
+    return base64.urlsafe_b64encode(digest).decode("utf-8").rstrip("=")
+
+
+def create_oauth_state() -> str:
+    return secrets.token_urlsafe(32)
+
+
+def build_x_authorization_url(state: str, code_challenge: str) -> str:
+    query = urlencode(
+        {
+            "response_type": "code",
+            "client_id": X_OAUTH_CLIENT_ID,
+            "redirect_uri": X_OAUTH_REDIRECT_URI,
+            "scope": X_OAUTH_SCOPE,
+            "state": state,
+            "code_challenge": code_challenge,
+            "code_challenge_method": "S256",
+        }
+    )
+    return f"{X_OAUTH_AUTHORIZE_URL}?{query}"

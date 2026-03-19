@@ -17,6 +17,18 @@ def serialize_user(user: User):
         "username": user.username,
         "email": user.email,
         "profile_description": user.profile_description or "",
+        "full_name": user.full_name or "",
+        "avatar_url": user.avatar_url or "",
+        "location": user.location or "",
+        "website": user.website or "",
+        "x_username": user.x_username or "",
+        "x_user_id": user.x_user_id or "",
+        "x_profile_url": user.x_profile_url or "",
+        "x_avatar_url": user.x_avatar_url or "",
+        "x_connected_at": _iso(user.x_connected_at),
+        "aptos_wallet_address": user.aptos_wallet_address or "",
+        "aptos_wallet_provider": user.aptos_wallet_provider or "",
+        "aptos_connected_at": _iso(user.aptos_connected_at),
         "created_at": _iso(user.created_at),
     }
 

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 import { Link } from "react-router-dom"
 
 import { getDownloadUrl, getMarketplaceDatasets } from "../lib/api"
+import { useAuth } from "../context/AuthContext"
 import { toDatasetCardModel } from "../lib/datasets"
 import DatasetCard from "../components/DatasetCard"
 
@@ -11,6 +12,7 @@ export default function Marketplace() {
   const [sort, setSort] = useState("downloads")
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState("")
+  const { isAuthenticated } = useAuth()
 
   const loadMarketplace = useCallback(async () => {
     setIsLoading(true)
@@ -46,14 +48,24 @@ export default function Marketplace() {
     })
   }, [datasets, filterText])
 
+  const topRowDatasets = useMemo(
+    () => filteredDatasets.filter((_, index) => index % 2 === 0),
+    [filteredDatasets]
+  )
+  const bottomRowDatasets = useMemo(
+    () => filteredDatasets.filter((_, index) => index % 2 === 1),
+    [filteredDatasets]
+  )
+  const topLoop = useMemo(() => [...topRowDatasets, ...topRowDatasets], [topRowDatasets])
+  const bottomSource = bottomRowDatasets.length > 0 ? bottomRowDatasets : topRowDatasets
+  const bottomLoop = useMemo(() => [...bottomSource, ...bottomSource], [bottomSource])
+
   return (
     <div className="space-y-5">
       <section className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
-        <p className="text-xs uppercase tracking-[0.2em] text-cyan-200">Catalog</p>
-        <h2 className="font-display text-2xl text-white">Marketplace</h2>
-        <p className="mt-1 text-sm text-slate-300">
-          Ranked by download count via <code>/marketplace</code>.
-        </p>
+        <h2 className="text-center font-display text-3xl tracking-[0.08em] text-white md:text-4xl">
+          MARKETPLACE
+        </h2>
       </section>
 
       <input
@@ -92,30 +104,83 @@ export default function Marketplace() {
       )}
 
       {!isLoading && filteredDatasets.length > 0 && (
-        <div className="grid gap-4 md:grid-cols-2 2xl:grid-cols-3">
-          {filteredDatasets.map((dataset) => (
-            <DatasetCard
-              key={dataset.id}
-              dataset={dataset}
-              actions={
-                <>
-                  <Link
-                    to={`/dataset/${dataset.id}`}
-                    className="rounded-lg bg-cyan-300 px-3 py-2 text-xs font-bold text-slate-900 hover:bg-cyan-200"
-                  >
-                    View
-                  </Link>
-                  <a
-                    href={getDownloadUrl(dataset.id)}
-                    className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-white/20"
-                  >
-                    Download
-                  </a>
-                </>
-              }
-            />
-          ))}
-        </div>
+        <section className="space-y-4">
+          <div className="marketplace-marquee-mask rounded-2xl border border-white/10 bg-slate-900/40 py-5">
+            <div className="marketplace-marquee-track-left">
+              {topLoop.map((dataset, index) => (
+                <div key={`top-${dataset.id}-${index}`} className="marketplace-marquee-item">
+                  <DatasetCard
+                    dataset={dataset}
+                    restricted={!isAuthenticated}
+                    actions={
+                      isAuthenticated ? (
+                        <>
+                          <Link
+                            to={`/dataset/${dataset.id}`}
+                            className="rounded-lg bg-cyan-300 px-3 py-2 text-xs font-bold text-slate-900 hover:bg-cyan-200"
+                          >
+                            View
+                          </Link>
+                          <a
+                            href={getDownloadUrl(dataset.id)}
+                            className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-white/20"
+                          >
+                            Download
+                          </a>
+                        </>
+                      ) : (
+                        <Link
+                          to="/login"
+                          className="rounded-lg bg-cyan-300 px-3 py-2 text-xs font-bold text-slate-900 hover:bg-cyan-200"
+                        >
+                          Login
+                        </Link>
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="marketplace-marquee-mask rounded-2xl border border-white/10 bg-slate-900/40 py-5">
+            <div className="marketplace-marquee-track-right">
+              {bottomLoop.map((dataset, index) => (
+                <div key={`bottom-${dataset.id}-${index}`} className="marketplace-marquee-item">
+                  <DatasetCard
+                    dataset={dataset}
+                    restricted={!isAuthenticated}
+                    actions={
+                      isAuthenticated ? (
+                        <>
+                          <Link
+                            to={`/dataset/${dataset.id}`}
+                            className="rounded-lg bg-cyan-300 px-3 py-2 text-xs font-bold text-slate-900 hover:bg-cyan-200"
+                          >
+                            View
+                          </Link>
+                          <a
+                            href={getDownloadUrl(dataset.id)}
+                            className="rounded-lg bg-white/10 px-3 py-2 text-xs font-semibold text-slate-100 hover:bg-white/20"
+                          >
+                            Download
+                          </a>
+                        </>
+                      ) : (
+                        <Link
+                          to="/login"
+                          className="rounded-lg bg-cyan-300 px-3 py-2 text-xs font-bold text-slate-900 hover:bg-cyan-200"
+                        >
+                          Login
+                        </Link>
+                      )
+                    }
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
       )}
     </div>
   )

@@ -1,9 +1,8 @@
 from datetime import datetime
-from uuid import uuid4
 
 from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, Query, UploadFile
 from fastapi.responses import FileResponse
-from sqlalchemy import and_, asc, desc, func, or_
+from sqlalchemy import asc, desc, func, or_
 from sqlalchemy.orm import Session
 
 from ..auth import get_current_user, get_optional_user
@@ -19,23 +18,6 @@ from ..storage import (
 )
 
 router = APIRouter(prefix="/datasets", tags=["datasets"])
-
-
-def _get_or_create_guest_user(db: Session) -> User:
-    guest = db.query(User).filter(User.username == "guest").first()
-    if guest:
-        return guest
-
-    guest = User(
-        username="guest",
-        email="guest@datapulse.local",
-        profile_description="Guest uploads",
-        api_key=uuid4().hex,
-    )
-    db.add(guest)
-    db.commit()
-    db.refresh(guest)
-    return guest
 
 
 def _get_dataset_with_owner(db: Session, dataset_id: int) -> Dataset | None:
@@ -104,18 +86,16 @@ async def upload_dataset(
     license: str | None = Form(default=None),
     visibility: str | None = Form(default=None),
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     if not file.filename:
         raise HTTPException(status_code=400, detail="Uploaded file must have a filename.")
-
-    owner = current_user or _get_or_create_guest_user(db)
 
     try:
         dataset = save_dataset(
             upload=file,
             db=db,
-            owner_id=owner.id,
+            owner_id=current_user.id,
             name=name,
             description=description,
             tags=tags,
@@ -214,7 +194,7 @@ def explore_datasets(
 def get_dataset(
     dataset_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     dataset = _get_dataset_with_owner(db, dataset_id)
     if not dataset or not _can_access_dataset(dataset, current_user):
@@ -271,7 +251,7 @@ def update_dataset(
 def dataset_preview(
     dataset_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     dataset = _get_dataset_with_owner(db, dataset_id)
     if not dataset or not _can_access_dataset(dataset, current_user):
@@ -284,7 +264,7 @@ def dataset_preview(
 def dataset_analytics_view(
     dataset_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     dataset = _get_dataset_with_owner(db, dataset_id)
     if not dataset or not _can_access_dataset(dataset, current_user):
@@ -334,7 +314,7 @@ def purchase_dataset(
 def download_dataset(
     dataset_id: int,
     db: Session = Depends(get_db),
-    current_user: User | None = Depends(get_optional_user),
+    current_user: User = Depends(get_current_user),
 ):
     dataset = _get_dataset_with_owner(db, dataset_id)
     if not dataset or not _can_access_dataset(dataset, current_user):

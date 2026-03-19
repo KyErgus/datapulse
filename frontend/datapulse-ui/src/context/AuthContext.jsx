@@ -8,6 +8,7 @@ import {
   login as loginRequest,
   register as registerRequest,
   setAuthToken,
+  walletLogin as walletLoginRequest,
 } from "../lib/api"
 
 const AuthContext = createContext(null)
@@ -56,6 +57,12 @@ export function AuthProvider({ children }) {
       isReady,
       async login(credentials) {
         const response = await loginRequest(credentials)
+        setAuthToken(response.access_token)
+        setUser(response.user)
+        return response.user
+      },
+      async loginWithWallet(payload) {
+        const response = await walletLoginRequest(payload)
         setAuthToken(response.access_token)
         setUser(response.user)
         return response.user

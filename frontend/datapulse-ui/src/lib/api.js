@@ -100,8 +100,20 @@ export async function login(payload) {
   })
 }
 
+export async function walletLogin(payload) {
+  return apiFetch("/auth/wallet-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+}
+
 export async function getAuthMe() {
   return apiFetch("/auth/me")
+}
+
+export async function startXOAuth() {
+  return apiFetch("/auth/x/start")
 }
 
 export async function uploadDataset({
@@ -195,6 +207,38 @@ export async function getMyDatasets() {
 
 export async function getMyProfile() {
   return apiFetch("/me/profile")
+}
+
+export async function updateMyProfile(payload) {
+  return apiFetch("/me/profile", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function connectXAccount(payload) {
+  return apiFetch("/me/connect-x", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function disconnectXAccount() {
+  return apiFetch("/me/connect-x", { method: "DELETE" })
+}
+
+export async function connectAptosWallet(payload) {
+  return apiFetch("/me/connect-wallet", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function disconnectAptosWallet() {
+  return apiFetch("/me/connect-wallet", { method: "DELETE" })
 }
 
 export async function getMyStats() {
