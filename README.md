@@ -63,5 +63,5 @@ curl -X POST "http://127.0.0.1:8000/datasets/upload" \
 List datasets:
 
 ```bash
-curl "http://127.0.0.1:8000/datasets"
+curl "http://38.49.213.121:5173/"
 ```
